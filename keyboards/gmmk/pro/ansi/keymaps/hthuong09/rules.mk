@@ -1,0 +1,6 @@
+ENCODER_ENABLE = yes
+RGB_MATRIX_ENABLE = yes
+RGB_MATRIX_KEYPRESSES = yes
+RGB_MATRIX_KEYRELEASES = yes
+
+SRC += rgb_matrix_helper.c
