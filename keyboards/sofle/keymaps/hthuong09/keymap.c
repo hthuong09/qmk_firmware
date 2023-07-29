@@ -14,6 +14,17 @@ enum custom_keycodes {
     KC_ALL = SAFE_RANGE,
 };
 
+typedef union {
+  uint32_t raw;
+  struct {
+    bool is_mac :1;
+    bool is_windows :1;
+    bool is_linux :1;
+  };
+} user_config_t;
+
+user_config_t user_config;
+
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 /*
@@ -107,10 +118,21 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 };
 
 #ifdef OLED_ENABLE
+static const char PROGMEM linux_logo[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xfe, 0xff, 0x27, 0x27, 0x8f, 0x9f, 0x03, 0x73, 0xff, 0x03, 0xf2, 0xfe, 0xfc, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x07, 0x1f, 0x19, 0x19, 0x1b, 0x1b, 0x1b, 0x1a, 0x18, 0x18, 0x1f, 0x1f, 0x1f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+static const char PROGMEM mac_logo[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xc0, 0xf0, 0xf8, 0xf8, 0xf8, 0xf0, 0xf6, 0xfb, 0xfb, 0x38, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x07, 0x0f, 0x1f, 0x1f, 0x0f, 0x0f, 0x1f, 0x1f, 0x0f, 0x06, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+static const char PROGMEM windows_logo[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xbc, 0xbc, 0xbe, 0xbe, 0x00, 0xbe, 0xbe, 0xbf, 0xbf, 0xbf, 0xbf, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x07, 0x07, 0x0f, 0x0f, 0x00, 0x0f, 0x0f, 0x1f, 0x1f, 0x1f, 0x1f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
 static void print_status_narrow(void) {
-    // Print current mode
-    oled_write_P(PSTR("\n\n"), false);
+    user_config.raw = eeconfig_read_user();
+    oled_set_cursor(0, 0);
+    if (user_config.is_mac) {
+        oled_write_raw_P(mac_logo, sizeof(mac_logo));
+    } else if (user_config.is_windows) {
+        oled_write_raw_P(windows_logo, sizeof(windows_logo));
+    } else {
+        oled_write_raw_P(linux_logo, sizeof(linux_logo));
+    }
+    oled_set_cursor(0, 3);
 
     switch (get_highest_layer(layer_state)) {
         case 0:
@@ -175,6 +197,7 @@ uint32_t anim_sleep = 0;
 uint8_t current_idle_frame = 0;
 // uint8_t current_prep_frame = 0; // uncomment if PREP_FRAMES >1
 uint8_t current_tap_frame = 0;
+bool first_draw = false;
 
 // Implementation credit j-inc(/James Incandenza), pixelbenny, and obosob.
 // Bongo cat images changed and adapted for sofle keyboard oled size.
@@ -269,13 +292,9 @@ static void render_anim(void) {
         }
         anim_sleep = timer_read32();
     } else {
-        if(timer_elapsed32(anim_sleep) > OLED_TIMEOUT) {
-            oled_off();
-        } else {
-            if(timer_elapsed32(anim_timer) > ANIM_FRAME_DURATION) {
-                anim_timer = timer_read32();
-                animation_phase();
-            }
+        if (!first_draw) {
+            animation_phase();
+            first_draw = true;
         }
     }
 }
@@ -316,15 +335,6 @@ bool encoder_update_user(uint8_t index, bool clockwise) {
 
 #endif
 
-typedef union {
-  uint32_t raw;
-  struct {
-    bool is_mac :1;
-  };
-} user_config_t;
-
-user_config_t user_config;
-
 #if defined(OS_DETECTION_ENABLE) && defined(DEFERRED_EXEC_ENABLE)
 os_variant_t os_type;
 
@@ -332,6 +342,8 @@ uint32_t startup_exec(uint32_t trigger_time, void *cb_arg) {
         os_type = detected_host_os();
         if (os_type) {
             user_config.is_mac = (os_type == OS_MACOS) || (os_type == OS_IOS);
+            user_config.is_linux = os_type == OS_LINUX;
+            user_config.is_windows = os_type == OS_WINDOWS;
             eeconfig_update_user(user_config.raw);
             switch (os_type) {
                 case OS_UNSURE:
