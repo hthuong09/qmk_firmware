@@ -1,4 +1,19 @@
 #include QMK_KEYBOARD_H
+#ifdef OS_DETECTION_ENABLE
+#include "os_detection.h"
+#endif
+
+enum layers {
+  _QWERTY,
+  _VIM,
+  _SYMB,
+  _FUNC,
+};
+
+enum custom_keycodes {
+    KC_ALL = SAFE_RANGE,
+};
+
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 /*
@@ -17,7 +32,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
  *            `----------------------------------'           '------''---------------------------'
  */
 
-[0] = LAYOUT(
+[_QWERTY] = LAYOUT(
   KC_GRV,           KC_1,   KC_2,    KC_3,    KC_4,           KC_5,                     KC_6,    KC_7,    KC_8,    KC_9,    KC_0,  KC_GRV,
   KC_TAB,           KC_Q,   KC_W,    KC_E,    KC_R,           KC_T,                     KC_Y,    KC_U,    KC_I,    KC_O,    KC_P,  KC_BSPC,
   LCTL_T(KC_ESC),   KC_A,   KC_S,    KC_D,    LT(1, KC_F),    KC_G,                     KC_H,    KC_J,    KC_K,    KC_L, KC_SCLN,  KC_QUOT,
@@ -40,41 +55,41 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
  *            `-----------------------------------'           '------''---------------------------'
  */
 
-[1] = LAYOUT(
+[_VIM] = LAYOUT(
  _______, _______, _______, _______, _______, _______,      _______, _______, _______, _______, _______, _______,
  _______, _______, _______, _______, _______, _______,      KC_HOME, KC_PGDN, KC_PGUP, KC_END , _______, _______,
  _______, _______, _______, _______, _______, _______,      KC_LEFT, KC_DOWN, KC_UP  , KC_RGHT, _______, _______,
  _______, _______, _______, _______, _______, _______, _______,  _______,_______, _______, _______, _______, _______, _______,
      _______,_______,_______,_______, _______,  _______, _______, _______, _______, _______
 ),
-/* LOWER
+/* SYMBOL
  * ,-----------------------------------------.                    ,-----------------------------------------.
- * |      |  F1  |  F2  |  F3  |  F4  |  F5  |                    |  F6  |  F7  |  F8  |  F9  | F10  | F11  |
+ * |      |      |      |      |      |      |                    |      |      |      |      |      |      |
  * |------+------+------+------+------+------|                    |------+------+------+------+------+------|
- * |  `   |   1  |   2  |   3  |   4  |   5  |                    |   6  |   7  |   8  |   9  |   0  | F12  |
+ * |      |      |      |      |      |      |                    |  -   |   _  |  +  |   =  |   \   |  |   |
  * |------+------+------+------+------+------|                    |------+------+------+------+------+------|
- * | Tab  |   !  |   @  |   #  |   $  |   %  |-------.    ,-------|   ^  |   &  |   *  |   (  |   )  |   |  |
- * |------+------+------+------+------+------|  MUTE |    |       |------+------+------+------+------+------|
- * | Shift|  =   |  -   |  +   |   {  |   }  |-------|    |-------|   [  |   ]  |   ;  |   :  |   \  | Shift|
+ * |      |      |      |      |      |      |-------.    ,-------|   (  |  )   |   [  |  ]   |  {   |  }   |
+ * |------+------+------+------+------+------|       |    |       |------+------+------+------+------+------|
+ * |      |      |      |      |      |      |-------|    |-------|      |      |      |      |      |      |
  * `-----------------------------------------/       /     \      \-----------------------------------------'
- *            | LGUI | LAlt | LCTR |LOWER | /Enter  /       \Space \  |RAISE | RCTR | RAlt | RGUI |
+ *            |      |      |      |      | /       /       \      \  |      |      |      |      |
  *            |      |      |      |      |/       /         \      \ |      |      |      |      |
  *            `----------------------------------'           '------''---------------------------'
  */
-[2] = LAYOUT(
-  _______,   KC_F1,   KC_F2,   KC_F3,   KC_F4,   KC_F5,                       KC_F6,   KC_F7,   KC_F8,   KC_F9,  KC_F10,  KC_F11,
-  KC_GRV,    KC_1,    KC_2,    KC_3,    KC_4,    KC_5,                       KC_6,    KC_7,    KC_8,    KC_9,    KC_0,  KC_F12,
-  _______, KC_EXLM,   KC_AT, KC_HASH,  KC_DLR, KC_PERC,                       KC_CIRC, KC_AMPR, KC_ASTR, KC_LPRN, KC_RPRN, KC_PIPE,
-  _______,  KC_EQL, KC_MINS, KC_PLUS, KC_LCBR, KC_RCBR, _______,       _______, KC_LBRC, KC_RBRC, KC_SCLN, KC_COLN, KC_BSLS, _______,
-                       _______, _______, _______, _______, _______,       _______, _______, _______, _______, _______
+[_SYMB] = LAYOUT(
+  _______,_______,_______,_______,_______,_______,                      _______,_______,_______,_______,  _______,  _______,
+  _______,_______,_______,_______,_______,_______,                      KC_MINS,KC_UNDS,KC_PLUS,KC_EQL ,  KC_BSLS,  KC_PIPE,
+  _______,_______,_______,_______,_______,_______,                      KC_LPRN,KC_RPRN,KC_LBRC,KC_RBRC,  KC_LCBR,  KC_RCBR,
+  _______,_______,_______,_______,_______,_______, _______,    _______, _______,_______,_______,_______,  _______,  _______,
+               _______, _______, _______, _______, _______,    _______, _______, _______, _______, _______
 ),
-/* RAISE
+/* FUNCTION
  * ,----------------------------------------.                    ,-----------------------------------------.
- * |      |      |      |      |      |      |                    |      |      |      |      |      |      |
+ * |      |  F1  |  F2  |  F3  |  F4  |  F5  |                    |  F6  |  F7  |  F8  |  F9  | F10  | F11  |
  * |------+------+------+------+------+------|                    |------+------+------+------+------+------|
- * | Esc  | Ins  | Pscr | Menu |      |      |                    |      | PWrd |  Up  | NWrd | DLine| Bspc |
+ * | Esc  | Ins  | Pscr | Menu |      |      |                    |      | PWrd |  Up  | NWrd | DLine| F12  |
  * |------+------+------+------+------+------|                    |------+------+------+------+------+------|
- * | Tab  | LAt  | LCtl |LShift|      | Caps |-------.    ,-------|      | Left | Down | Rigth|  Del | Bspc |
+ * | Tab  | All  | LCtl |LShift|      | Caps |-------.    ,-------|      | Left | Down | Rigth|  Del | Bspc |
  * |------+------+------+------+------+------|  MUTE  |   |       |------+------+------+------+------+------|
  * |Shift | Undo |  Cut | Copy | Paste|      |--------|   |-------|      | LStr |      | LEnd |      | Shift|
  * `-----------------------------------------/       /     \      \-----------------------------------------'
@@ -82,11 +97,11 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
  *            |      |      |      |      |/       /         \      \ |      |      |      |      |
  *            `----------------------------------'           '------''---------------------------'
  */
-[3] = LAYOUT(
-  _______, _______ , _______ , _______ , _______ , _______,                           _______,  _______  , _______,  _______ ,  _______ ,_______,
-  _______,  KC_INS,  KC_PSCR,   KC_APP,  XXXXXXX, XXXXXXX,                        KC_PGUP, _______,   KC_UP, _______,_______, KC_BSPC,
-  _______, KC_LALT,  KC_LCTL,  KC_LSFT,  XXXXXXX, KC_CAPS,                       KC_PGDN,  KC_LEFT, KC_DOWN, KC_RGHT,  KC_DEL, KC_BSPC,
-  _______,KC_UNDO, KC_CUT, KC_COPY, KC_PASTE, XXXXXXX,  _______,       _______,  XXXXXXX, _______, XXXXXXX, _______,   XXXXXXX, _______,
+[_FUNC] = LAYOUT(
+  _______,   KC_F1,    KC_F2,   KC_F3,     KC_F4,   KC_F5,                        KC_F6  ,   KC_F7,   KC_F8,   KC_F9,  KC_F10,  KC_F11,
+  _______,  KC_INS,  KC_PSCR,   KC_APP,  XXXXXXX, XXXXXXX,                        KC_PGUP, _______,   KC_UP, _______, _______,  KC_F12,
+  _______,  KC_ALL,  KC_LCTL,  KC_LSFT,  XXXXXXX, KC_CAPS,                        KC_PGDN, KC_LEFT, KC_DOWN, KC_RGHT, KC_DEL , KC_BSPC,
+  _______,KC_UNDO, KC_CUT, KC_COPY, KC_PASTE, XXXXXXX,  _______,       _______,  XXXXXXX, _______, XXXXXXX, _______,  XXXXXXX, _______,
                          _______, _______, _______, _______, _______,       _______, _______, _______, _______, _______
 )
 };
@@ -102,7 +117,7 @@ static void print_status_narrow(void) {
             oled_write_ln_P(PSTR("Qwrt"), false);
             break;
         case 1:
-            oled_write_ln_P(PSTR("VIM"), false);
+            oled_write_ln_P(PSTR("Vim"), false);
             break;
         default:
             oled_write_P(PSTR("Mod\n"), false);
@@ -112,15 +127,15 @@ static void print_status_narrow(void) {
     // Print current layer
     oled_write_ln_P(PSTR("LAYER"), false);
     switch (get_highest_layer(layer_state)) {
-        case 0:
-        case 1:
+        case _QWERTY:
+        case _VIM:
             oled_write_P(PSTR("Base\n"), false);
             break;
-        case 2:
-            oled_write_P(PSTR("Raise"), false);
+        case _SYMB:
+            oled_write_P(PSTR("Symb\n"), false);
             break;
-        case 3:
-            oled_write_P(PSTR("Lower"), false);
+        case _FUNC:
+            oled_write_P(PSTR("Func\n"), false);
             break;
         default:
             oled_write_ln_P(PSTR("Undef"), false);
@@ -291,12 +306,110 @@ bool encoder_update_user(uint8_t index, bool clockwise) {
         }
     } else if (index == 1) {
         if (clockwise) {
-            tap_code(KC_PGDN);
+            tap_code(KC_RIGHT);
         } else {
-            tap_code(KC_PGUP);
+            tap_code(KC_LEFT);
         }
     }
-    return true;
+    return false;
 }
 
 #endif
+
+typedef union {
+  uint32_t raw;
+  struct {
+    bool is_mac :1;
+  };
+} user_config_t;
+
+user_config_t user_config;
+
+#if defined(OS_DETECTION_ENABLE) && defined(DEFERRED_EXEC_ENABLE)
+os_variant_t os_type;
+
+uint32_t startup_exec(uint32_t trigger_time, void *cb_arg) {
+        os_type = detected_host_os();
+        if (os_type) {
+            user_config.is_mac = (os_type == OS_MACOS) || (os_type == OS_IOS);
+            eeconfig_update_user(user_config.raw);
+            switch (os_type) {
+                case OS_UNSURE:
+                    xprintf("unknown OS Detected\n");
+                    break;
+                case OS_LINUX:
+                    xprintf("Linux Detected\n");
+                    break;
+                case OS_WINDOWS:
+                    xprintf("Windows Detected\n");
+                    break;
+                case OS_MACOS:
+                    xprintf("MacOS Detected\n");
+                    break;
+                case OS_IOS:
+                    xprintf("iOS Detected\n");
+                    break;
+            }
+        }
+
+    return os_type ? 0 : 500;
+}
+#endif
+
+void keyboard_post_init_user(void) {
+#if defined(OS_DETECTION_ENABLE) && defined(DEFERRED_EXEC_ENABLE)
+    defer_exec(100, startup_exec, NULL);
+#endif
+}
+
+bool process_record_user(uint16_t keycode, keyrecord_t *record) {
+    user_config.raw = eeconfig_read_user();
+    switch (keycode) {
+        case KC_COPY:
+            if (record->event.pressed) {
+                if (user_config.is_mac) {
+                    tap_code16(G(KC_C));
+                } else {
+                    tap_code16(C(KC_C));
+                }
+            }
+            return false;
+        case KC_PASTE:
+            if (record->event.pressed) {
+                if (user_config.is_mac) {
+                    tap_code16(G(KC_V));
+                } else {
+                    tap_code16(C(KC_V));
+                }
+            }
+            return false;
+        case KC_CUT:
+            if (record->event.pressed) {
+                if (user_config.is_mac) {
+                    tap_code16(G(KC_X));
+                } else {
+                    tap_code16(C(KC_X));
+                }
+            }
+            return false;
+        case KC_UNDO:
+            if (record->event.pressed) {
+                if (user_config.is_mac) {
+                    tap_code16(G(KC_Z));
+                } else {
+                    tap_code16(C(KC_Z));
+                }
+            }
+            return false;
+        case KC_ALL:
+            if (record->event.pressed) {
+                if (user_config.is_mac) {
+                    tap_code16(G(KC_A));
+                } else {
+                    tap_code16(C(KC_A));
+                }
+            }
+            return false;
+    }
+  return true;
+}
